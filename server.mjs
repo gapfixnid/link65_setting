@@ -11,7 +11,7 @@ const server=createServer(async(req,res)=>{
     if(file!==root && !file.startsWith(root+path.sep)){res.writeHead(403).end();return;}
     if(!['GET','HEAD'].includes(req.method)){res.writeHead(405).end();return;}
     const info=await stat(file);if(!info.isFile()){res.writeHead(404).end();return;}
-    res.writeHead(200,{'Content-Type':types[path.extname(file)]??'application/octet-stream','Cache-Control':'no-cache','X-Content-Type-Options':'nosniff','Permissions-Policy':'hid=(self)','Referrer-Policy':'no-referrer'});
+    res.writeHead(200,{'Content-Type':types[path.extname(file)]??'application/octet-stream','Cache-Control':'no-cache','X-Content-Type-Options':'nosniff','Permissions-Policy':'hid=(self), usb=(self)','Referrer-Policy':'no-referrer'});
     res.end(req.method==='HEAD'?undefined:await readFile(file));
   }catch{res.writeHead(404,{'Content-Type':'text/plain; charset=utf-8'}).end('Not found');}
 });

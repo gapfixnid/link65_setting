@@ -1,17 +1,19 @@
 import {COLS,VID,PID,KeyRegistry,MacroCodec,KeyTestState,ConfigurationError,
   cloneSnapshot,sameSnapshot,equalBytes,toBackup,migrateBackup,hex} from './model.mjs';
 import {WebHIDTransport,Link65Client,UnsupportedCommand,ConnectionError,delay,isLink65} from './protocol.mjs';
+import {FirmwareUI} from './firmware-ui.mjs';
 
 const $ = id=>document.getElementById(id);
 const views = {keymap:['키맵','익숙한 배열에, 나만의 동작을 더하세요.'],
   tester:['키 테스트','하나하나 눌러 보고, 확실하게 확인하세요.'],
   macros:['매크로','반복되는 동작을, 한 번의 키 입력으로.'],
-  settings:['백업 및 설정','지금의 설정을 보관하고, 편하게 관리하세요.']};
+  settings:['백업 및 설정','지금의 설정을 보관하고, 편하게 관리하세요.'],
+  firmware:['펌웨어 업데이트','설정을 보관하고, 연결부터 차근차근 확인하세요.']};
 const state = {client:null,baseline:null,draft:null,deviceBaseline:false,busy:false,view:'keymap',
   selected:null,layer:0,category:'basic',macro:0,macroTexts:new Map(),macroEditable:true,
   pollGeneration:0,pollTask:null,testWanted:true,testUnavailable:false,flashes:new Map(),
   boardButtons:new Map(),testButtons:new Map(),connected:false};
-let tables,layout,factory,registry,testRegistry,tester,toastTimer,audio;
+let tables,layout,factory,registry,testRegistry,tester,toastTimer,audio,firmwareUI;
 const HISTORY_KEY = 'link65-studio-backups-v1';
 const safePreference = (key,value) => { try { if(value === undefined) return localStorage.getItem(key); localStorage.setItem(key,value); } catch {} };
 const storedTheme = safePreference('link65-studio-theme');
@@ -129,9 +131,10 @@ function stageKey(code) {
 function renderControls() {
   if(!state.draft) return;
   const connected=Boolean(state.client && state.connected),changed=dirty(),editable=canEdit();
+  const dfuOpen=Boolean(firmwareUI?.dfu);
   const count=state.draft.keymap.reduce((n,layer,l)=>n+layer.filter((code,i)=>code!==state.baseline.keymap[l][i]).length,0);
   const macros=!equalBytes(state.baseline.macros,state.draft.macros),options=state.draft.layoutOptions!==null && state.draft.layoutOptions!==state.baseline.layoutOptions;
-  $('connect-button').disabled=state.busy || !('hid' in navigator) || !isSecureContext;
+  $('connect-button').disabled=state.busy || dfuOpen || !('hid' in navigator) || !isSecureContext;
   $('connect-button').querySelector('span').textContent=connected?'다시 연결':'키보드 연결';
   $('disconnect-button').hidden=!connected;$('disconnect-button').disabled=state.busy;
   $('connection-pill').querySelector('span').textContent=connected?'Link65 연결됨':'연결되지 않음';
@@ -145,10 +148,10 @@ function renderControls() {
   $('change-dot').classList.toggle('dirty',changed);
   $('save-detail').textContent=!connected?'미리보기 편집입니다. 기기를 연결하면 실제 설정을 불러옵니다.':
     !state.draft.info.writable?'현재 펌웨어는 백업과 읽기만 지원합니다.':changed?'적용하면 자동 백업 후 기기에 저장합니다.':'현재 설정을 기기에서 읽어 왔습니다.';
-  $('apply-button').disabled=!connected || !editable || !changed;
+  $('apply-button').disabled=!connected || !editable || !changed || dfuOpen;
   $('discard-button').disabled=state.busy || !changed;
-  $('reset-button').disabled=!connected || !editable;
-  $('reload-button').disabled=!connected || state.busy || changed;
+  $('reset-button').disabled=!connected || !editable || dfuOpen;
+  $('reload-button').disabled=!connected || state.busy || changed || dfuOpen;
   $('export-backup').disabled=state.busy;$('import-backup').disabled=!editable;
   $('stage-macro').disabled=!editable || !state.macroEditable || !state.draft.info.macroCount;
   $('macro-input').disabled=!editable || !state.macroEditable;
@@ -156,6 +159,7 @@ function renderControls() {
   $('test-pause').disabled=!connected || state.busy || state.testUnavailable;
   $('test-pause').textContent=state.testWanted?'일시 정지':'테스트 시작';
   renderInfo();
+  if(firmwareUI){firmwareUI.externalBusy=state.busy;firmwareUI.render();}
 }
 function renderAll() {renderBoard();renderSelection();renderCatalog();renderControls();renderHistory();renderTest();}
 function renderInfo() {
@@ -201,7 +205,7 @@ function stageMacro() {
 }
 function renderHistory() {
   const entries=loadHistory();$('backup-empty').hidden=entries.length>0;$('backup-history').replaceChildren();
-  const reasons={'connected':'연결 시 백업','before-apply':'설정 변경 전','before-reset':'초기화 전','preview':'미리보기 편집본'};
+  const reasons={'connected':'연결 시 백업','before-apply':'설정 변경 전','before-reset':'초기화 전','before-firmware':'펌웨어 업데이트 전','preview':'미리보기 편집본'};
   for(const entry of entries) {
     const row=document.createElement('div');row.className='backup-row';const info=document.createElement('div'),title=document.createElement('strong'),detail=document.createElement('small');
     const date=new Date(entry.backup.created_at);title.textContent=Number.isNaN(date.getTime())?'저장한 설정':date.toLocaleString('ko-KR');
@@ -223,10 +227,10 @@ async function perform(description,operation) {
   try {await operation();} catch(error){if(state.client?.transport.invalidated)await disconnect();notify(error.message??String(error),true);}
   finally {state.busy=false;$('operation-status').hidden=true;renderAll();refreshTester();}
 }
-async function connect() {
+async function connect(knownDevices=null) {
   if(state.busy || !('hid' in navigator) || !isSecureContext)return;
   // Request permission immediately in the click gesture, before any await.
-  const selection=navigator.hid.requestDevice({filters:[{vendorId:VID,productId:PID,usagePage:0xff60,usage:0x61}]});
+  const selection=knownDevices?Promise.resolve(knownDevices):navigator.hid.requestDevice({filters:[{vendorId:VID,productId:PID,usagePage:0xff60,usage:0x61}]});
   await perform('Link65를 찾아 현재 설정을 읽고 있습니다…',async()=>{
     let devices;
     try {devices=await selection;}catch(error){if(error.name==='NotFoundError')return;throw error;}
@@ -332,7 +336,7 @@ async function initialize() {
   acceptSnapshot(factory);
   if(!('hid'in navigator) || !isSecureContext){$('compatibility-banner').hidden=false;$('compatibility-banner').textContent=!isSecureContext?'기기 연결에는 HTTPS 또는 localhost 주소가 필요합니다. 배포 주소나 함께 제공한 로컬 실행기를 이용해 주세요.':'이 브라우저는 WebHID를 지원하지 않습니다. 데스크톱 Microsoft Edge 또는 Chrome에서 열어 주세요.';}
   if('hid'in navigator)navigator.hid.addEventListener('disconnect',event=>{if(state.client?.transport.device===event.device)void disconnect('USB 연결이 끊겼습니다. 키보드를 다시 연결해 주세요.');});
-  $('connect-button').onclick=connect;
+  $('connect-button').onclick=()=>void connect();
   $('disconnect-button').onclick=()=>{if(!state.busy)void disconnect();};
   for(const button of document.querySelectorAll('[data-view]'))button.onclick=()=>{location.hash=button.dataset.view;};
   window.addEventListener('hashchange',()=>setView(location.hash.slice(1)));
@@ -362,6 +366,13 @@ async function initialize() {
   window.addEventListener('blur',refreshTester);window.addEventListener('focus',refreshTester);document.addEventListener('visibilitychange',refreshTester);
   window.addEventListener('beforeunload',event=>{if(state.busy||dirty()||state.macroTexts.size){event.preventDefault();event.returnValue='';}});
   setInterval(async()=>{if(!state.client||state.busy||state.pollTask)return;const client=state.client;try{await client.ping();}catch(error){if(client===state.client)await disconnect(error.message);}},8000);
+  firmwareUI=new FirmwareUI({getClient:()=>state.connected?state.client:null,run:perform,notify,download,saveAutomatic,tables,onRestored:acceptSnapshot,
+    connectKnown:async()=>{try{const devices=(await navigator.hid.getDevices()).filter(isLink65);
+      if(devices.length!==1)throw new ConfigurationError('허용한 Link65 한 대를 찾지 못했습니다. 상단의 「키보드 연결」을 눌러 선택해 주세요.');
+      await connect(devices);
+    }catch(error){notify(error.message,true);}}});
+  await firmwareUI.initialize();
   setView(location.hash.slice(1));
+  if(location.hash==='#firmware'&&navigator.hid){const known=(await navigator.hid.getDevices()).filter(isLink65);if(known.length===1)await connect(known);}
 }
 initialize().catch(error=>{$('compatibility-banner').hidden=false;$('compatibility-banner').textContent=error.message;notify(error.message,true);});

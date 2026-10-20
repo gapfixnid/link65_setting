@@ -1,6 +1,6 @@
 # Link65 Studio Setting
 
-Owlab Link65 Hotswap용 **Edge/Chrome WebHID 설정 페이지 v1.1.0**입니다. 펌웨어는 [link65_firmware](https://github.com/gapfixnid/link65_firmware)에서 별도로 관리합니다. 이 프로젝트의 실행·단위 테스트에는 펌웨어 폴더나 Python이 필요하지 않습니다.
+Owlab Link65 Hotswap용 **Edge/Chrome WebHID 설정 페이지 v1.2.0**입니다. 펌웨어는 [link65_firmware](https://github.com/gapfixnid/link65_firmware)에서 별도로 관리합니다. 이 프로젝트의 실행·단위 테스트에는 펌웨어 폴더나 Python이 필요하지 않습니다.
 
 ## 실행
 
@@ -19,6 +19,7 @@ Edge에서 `http://127.0.0.1:8765`를 열고 **키보드 연결**을 선택합�
 - 백업 가져오기·내보내기와 공장 초기화.
 - 눌린 위치 표시 및 알림음이 있는 키 테스트.
 - Link65 정의 JSON 내장.
+- WebUSB 직접 펌웨어 업데이트: 설정 이중 읽기 백업, DFU 연결·읽기 검증, 앱 영역만 기록, 기록 후 펌웨어·설정 Flash 비교.
 
 기존 VIA 7~12를 지원하며 Link65 순정 VIA 12와 호환됩니다. VIA 13에서는 QMK 키코드 버전 0.0.9를 협상한 경우에만 쓰기를 허용하고 알 수 없는 버전은 읽기 전용으로 연결합니다. Link65 Studio v1.0.1 및 v1.0.2-rc1과 호환됩니다. Studio 펌웨어의 명령 DFU 진입은 지원되지 않습니다.
 
@@ -49,3 +50,15 @@ UI는 `dist/app.js`, `dist/styles.css`, `dist/index.html`, 기기 통신은 `dis
 ## 라이선스
 
 GPL v3. [LICENSE.txt](LICENSE.txt), [THIRD_PARTY_NOTICES.txt](dist/THIRD_PARTY_NOTICES.txt), Pretendard의 SIL Open Font License를 유지합니다.
+
+## WebUSB 펌웨어 업데이트
+
+펌웨어 탭에서 정상 모드 설정을 두 번 읽어 백업한 뒤, B 키를 누른 채 USB를 다시 연결해 DFU 모드에 들어갑니다. DFU 장치에 대한 별도 WebUSB 승인이 필요하며 Windows에서는 해당 DFU 장치에 WinUSB가 연결되어 있어야 합니다. 현재 펌웨어는 명령에 의한 부트로더 진입을 지원하지 않습니다.
+
+읽기 검증은 앱 36KiB와 설정 4KiB를 각각 두 번 읽고 비교합니다. DfuSe 주소 포인터와 상태·읽기 명령만 사용하며 Flash 삭제, 펌웨어 데이터 전송, 정상 모드 실행 명령은 보내지 않습니다. 결과·복구 백업은 브라우저에만 보관하며 서버로 전송하지 않습니다. 복구 JSON은 새로고침 뒤나 다른 브라우저에서 다시 불러올 수 있습니다.
+
+기록에는 이번 USB 연결의 읽기 검증, 설정·Flash 백업의 저장 확인, 승인된 BIN의 SHA-256·DFU CRC·벡터 검사, 사용자 체크와 최종 대화상자 확인이 필요합니다. 현재 대상은 v1.0.2-rc1이며 파일 해시가 고정되어 있습니다. 기존 앱의 바이너리도 순정 VIA V3, Studio 1.0.1, 1.0.2-rc1 중 하나로 확인해야 기록을 허용합니다. 다른 기종이나 검증하지 않은 파일로 확장하려면 소스의 허용 목록 검토가 필요합니다.
+
+삭제·기록은 0x08006000 이상 0x0800F000 미만으로 제한합니다. 부트로더와 설정 영역은 기록하지 않습니다. DFU suffix 16바이트를 제외한 페이로드만 전송하고, 다시 읽은 페이로드와 설정 Flash가 일치해야 정상 모드 복귀를 허용합니다. 정상 모드 복귀 중 USB 연결 해제 자체를 업데이트 성공으로 판단하지 않으며, 별도 재연결 후 버전과 설정을 확인합니다.
+
+쓰기 코드의 자동 테스트는 모의 USB 장치에서만 실행합니다. 실제 브라우저·기기 연결과 실제 Flash 기록의 검증 상태는 별도로 구분해야 합니다.

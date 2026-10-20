@@ -25,11 +25,12 @@
         <button class="nav-item" data-view="tester" aria-label="키 테스트"><svg><use href="./icons.svg#test"/></svg><span>키 테스트</span></button>
         <button class="nav-item" data-view="macros" aria-label="매크로"><svg><use href="./icons.svg#macro"/></svg><span>매크로</span></button>
         <button class="nav-item" data-view="settings" aria-label="백업 및 설정"><svg><use href="./icons.svg#settings"/></svg><span>백업 및 설정</span></button>
+        <button class="nav-item" data-view="firmware" aria-label="펌웨어 업데이트"><svg><use href="./icons.svg#refresh"/></svg><span>펌웨어 업데이트</span></button>
       </nav>
       <div class="sidebar-bottom">
         <div class="device-tile"><div class="device-tile-icon"><svg><use href="./icons.svg#keyboard"/></svg></div><div class="device-tile-copy"><strong>Owlab Link65</strong><small id="sidebar-status"><i class="status-dot"></i> 연결 대기 중</small></div></div>
         <button class="theme-button" id="theme-button" title="화면 모드 전환"><svg><use href="./icons.svg#sun"/></svg><span>화면 모드</span><small id="theme-label">라이트</small></button>
-        <p class="sidebar-footnote">LINK65 HOTSWAP<br>WEB EDITION · 1.1</p>
+        <p class="sidebar-footnote">LINK65 HOTSWAP<br>WEB EDITION · 1.2</p>
       </div>
     </aside>
 
@@ -83,12 +84,26 @@
         <p class="section-note">Owlab·VIA·Apple의 공식 제품이 아닙니다. <a href="./THIRD_PARTY_NOTICES.txt" target="_blank" rel="noopener">오픈소스 및 폰트 라이선스</a></p>
       </section>
 
+      <section class="view firmware-view" id="view-firmware" aria-label="펌웨어 업데이트" hidden>
+        <div class="card firmware-overview"><div><p class="eyebrow">A CAREFUL NEXT STEP</p><h2>키보드의 다음 버전.</h2><p>현재 설정을 보관하고, 연결과 읽기를 먼저 확인합니다.<br>펌웨어 기록은 결과를 확인한 뒤 별도로 시작합니다.</p></div><span class="subtle-badge" id="firmware-support">WebUSB 확인 중</span></div>
+        <div class="firmware-grid">
+          <article class="card firmware-step" id="firmware-backup-card"><span class="firmware-step-number">01</span><h2>지금의 설정 보관</h2><p>정상 모드의 실제 기기 설정을 두 번 읽어 비교합니다. 키맵·매크로·레이아웃 백업은 이 브라우저에 보관하고 JSON으로도 내려받습니다.</p><dl class="firmware-facts"><div><dt>현재 펌웨어</dt><dd id="firmware-current">연결 후 확인</dd></div><div><dt>설정 백업</dt><dd id="firmware-backup-state">백업 필요</dd></div></dl><div class="button-row"><button class="button primary" id="firmware-backup" disabled>현재 기기 설정 백업</button><button class="button ghost" id="firmware-known-connect">허용한 키보드 다시 연결</button></div><button class="button ghost" id="firmware-session-download" disabled>복구용 전체 백업 다운로드</button></article>
+          <article class="card firmware-step" id="firmware-read-card"><span class="firmware-step-number">02</span><h2>연결과 읽기 확인</h2><p>USB 분리 → <strong>B 키를 누른 채 USB 연결</strong> → B 키 놓기. 그다음 아래 버튼으로 업데이트 장치를 선택하세요.</p><p class="firmware-help">앱 36KiB와 설정 4KiB를 각각 두 번 읽습니다. 이 검사는 Flash를 지우거나 펌웨어를 기록하지 않습니다.</p><dl class="firmware-facts"><div><dt>DFU 장치</dt><dd>1688:2220 · DfuSe</dd></div><div><dt>호환성</dt><dd id="firmware-dfu-state">연결 대기</dd></div></dl><div class="button-row"><button class="button secondary" id="firmware-dfu-connect" disabled>DFU 연결 · 읽기 검증</button><button class="button ghost" id="firmware-leave" disabled>정상 모드로 돌아가기</button></div></article>
+        </div>
+        <div class="card firmware-step firmware-release"><span class="firmware-step-number">03</span><div class="firmware-release-heading"><div><h2>펌웨어 파일 확인</h2><p id="firmware-version">검증된 Link65 Studio 펌웨어</p></div><span class="subtle-badge" id="firmware-image-state">파일 확인 대기</span></div><p>Link65 Hotswap용으로 검증한 파일만 허용합니다. 부트로더와 설정 영역은 기록 대상에서 제외합니다.</p><details class="firmware-technical"><summary>파일 무결성과 기록 범위</summary><dl class="firmware-facts"><div><dt>SHA-256</dt><dd id="firmware-hash"></dd></div><div><dt>기록 허용 범위</dt><dd>0x08006000–0x0800EFFF</dd></div><div><dt>보존 범위</dt><dd>부트로더 · 설정 Flash 4KiB</dd></div></dl></details><div class="button-row"><button class="button secondary" id="firmware-load-release">검증된 펌웨어 불러오기</button><label class="button ghost firmware-file-label">내 파일 선택<input type="file" id="firmware-file" accept=".bin,application/octet-stream" aria-label="펌웨어 BIN 파일 선택"></label></div><label class="firmware-consent"><input type="checkbox" id="firmware-consent" disabled><span>설정 백업과 이번 연결의 읽기 검증 결과를 확인했으며, 선택한 펌웨어 기록을 진행합니다.</span></label><button class="button primary" id="firmware-write" disabled>펌웨어 기록…</button><p class="firmware-help">파일을 불러오거나 읽기 검증에 통과하는 것만으로 기록이 시작되지는 않습니다. 기록 후에는 파일과 다시 읽기 결과, 설정 Flash의 보존 여부를 비교합니다.</p></div>
+        <div class="card firmware-step"><span class="firmware-step-number">04</span><h2>다시 연결하고 설정 확인</h2><p>정상 모드로 돌아온 뒤 키보드를 다시 연결하세요. 백업과 전체 키맵·매크로·레이아웃을 비교하고, 필요한 경우에만 백업 복원을 선택합니다.</p><div class="button-row"><button class="button secondary" id="firmware-check-normal" disabled>설정 보존 확인</button><button class="button ghost" id="firmware-restore" disabled>백업 설정 복원…</button><button class="button ghost" id="firmware-report-download" disabled>검증 결과 다운로드</button></div></div>
+        <div class="notice firmware-status" id="firmware-status" role="status" aria-live="polite">상단의 「키보드 연결」로 현재 설정부터 백업해 주세요. Windows에서는 DFU 장치용 WinUSB 드라이버가 필요합니다.</div>
+        <label class="button ghost firmware-file-label firmware-import-label">업데이트 복구 백업 불러오기<input type="file" id="firmware-backup-file" accept=".json,application/json" aria-label="업데이트 복구 JSON 백업 선택"></label>
+        <details class="card firmware-result" id="firmware-result" hidden><summary>검증 결과 자세히 보기</summary><pre id="firmware-result-text"></pre></details>
+      </section>
       <footer class="save-bar"><div class="save-status"><span id="change-dot"></span><div><strong id="change-count">변경한 설정이 없습니다.</strong><small id="save-detail">키보드를 연결하고 나만의 배열을 만들어 보세요.</small></div></div><div class="save-actions"><button class="button ghost" id="discard-button" disabled>변경 취소</button><button class="button primary" id="apply-button" disabled><svg><use href="./icons.svg#check"/></svg>키보드에 적용</button></div></footer>
-      <p class="page-footnote">LOCAL FIRST. YOUR KEYBOARD, YOUR SETTINGS.<span>Link65 Studio · Web 1.1</span></p>
+      <p class="page-footnote">LOCAL FIRST. YOUR KEYBOARD, YOUR SETTINGS.<span>Link65 Studio · Web 1.2</span></p>
     </main>
   </div>
   <div class="toast" id="toast" role="status" hidden></div>
   <dialog id="reset-dialog" aria-labelledby="reset-title"><div class="dialog-icon"><svg><use href="./icons.svg#refresh"/></svg></div><h2 id="reset-title">처음의 배열로 돌아갈까요?</h2><p>현재 설정을 자동 백업한 뒤 초기화합니다.</p><ul><li>전체 레이어 → 기판에 내장된 기본 키맵</li><li>저장한 매크로 → 모두 비우기</li><li>레이아웃 옵션 → 기본값</li></ul><p class="muted small" id="reset-extra"></p><div class="dialog-actions"><button class="button secondary" id="reset-cancel" autofocus>취소</button><button class="button danger" id="reset-confirm">초기화 실행</button></div></dialog>
   <noscript><p class="notice warning">이 도구를 사용하려면 JavaScript를 켜 주세요.</p></noscript>
+  <dialog id="firmware-write-dialog" aria-labelledby="firmware-write-title"><h2 id="firmware-write-title">선택한 펌웨어를 기록할까요?</h2><p>현재 Flash를 다시 읽어 백업과 비교한 뒤 앱 영역만 기록합니다. 기록하는 동안 이 페이지와 USB 연결을 유지해 주세요. 끝나면 펌웨어와 설정 영역을 다시 읽어 검증합니다.</p><div class="dialog-actions"><button class="button secondary" id="firmware-write-cancel" autofocus>취소</button><button class="button primary" id="firmware-write-confirm">펌웨어 기록 시작</button></div></dialog>
+  <dialog id="firmware-restore-dialog" aria-labelledby="firmware-restore-title"><h2 id="firmware-restore-title">업데이트 전 설정을 복원할까요?</h2><p>현재 기기 설정을 추가 백업한 뒤 업데이트 전 키맵·매크로·레이아웃을 복원합니다.</p><div class="dialog-actions"><button class="button secondary" id="firmware-restore-cancel" autofocus>취소</button><button class="button primary" id="firmware-restore-confirm">백업 설정 복원</button></div></dialog>
 </body>
 </html>

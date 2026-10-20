@@ -1,4 +1,4 @@
-Link65 Studio Web 1.1
+Link65 Studio Web 1.2
 
 Application source: GNU General Public License v3, LICENSE.txt.
 
@@ -19,3 +19,13 @@ SIL Open Font License 1.1; see assets/Pretendard-LICENSE.txt.
 Keyboard geometry is based on the publicly distributed Link65 Hotswap definition.
 VIA, Owlab, and Apple are referenced for compatibility and design context.
 This application is independently developed.
+
+Bundled Link65 Studio firmware v1.0.2-rc1 (GNU GPL v3):
+https://github.com/gapfixnid/link65_firmware/tree/v1.0.2-rc1
+The complete corresponding source, pinned upstream dependencies and build
+instructions are available from that tag. The binary is not modified by this site.
+
+The DfuSe transport is implemented in this project. Protocol references:
+USB DFU 1.1 specification and ST DfuSe extension, as implemented in dfu-util.
+https://www.usb.org/sites/default/files/DFU_1.1.pdf
+https://dfu-util.sourceforge.net/
