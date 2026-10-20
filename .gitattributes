@@ -1,0 +1,8 @@
+* text=auto eol=lf
+*.bin binary
+*.elf binary
+*.woff2 binary
+*.png binary
+*.zip binary
+dist/assets/Pretendard-LICENSE.txt -whitespace
+dist/assets/link65_hotswap_v3.json -whitespace

@@ -1,0 +1,21 @@
+Link65 Studio Web 1.1
+
+Application source: GNU General Public License v3, LICENSE.txt.
+
+VIA keycode data for legacy protocol versions:
+https://github.com/the-via/app
+Revision 935106a990af39bdd1ade881c02366eac486240d
+GNU GPL v3.
+
+QMK keycode version 0.0.9 data:
+https://github.com/qmk/qmk_firmware
+Revision 180f394b489c238cb231c2bf8b080262155e03c0
+Generated from quantum/keycodes.h; GPL-2.0-or-later, used under GPL v3.
+
+Pretendard Variable, v1.3.9:
+Copyright (c) 2021, Kil Hyung-jin (https://github.com/orioncactus/pretendard)
+SIL Open Font License 1.1; see assets/Pretendard-LICENSE.txt.
+
+Keyboard geometry is based on the publicly distributed Link65 Hotswap definition.
+VIA, Owlab, and Apple are referenced for compatibility and design context.
+This application is independently developed.

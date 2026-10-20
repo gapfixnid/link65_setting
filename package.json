@@ -1,0 +1,19 @@
+{
+  "name": "link65-setting",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "license": "GPL-3.0-only",
+  "scripts": {
+    "dev": "node server.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:firmware": "node tools/verify-firmware.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gapfixnid/link65_setting.git"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

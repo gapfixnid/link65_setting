@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f5f7">
+  <meta name="description" content="Owlab Link65 Hotswap을 위한 간결한 웹 설정 도구. 키맵, 매크로, 백업과 물리 키 테스트를 Edge에서 사용하세요.">
+  <title>Link65 Studio · 내 키보드를, 내 방식으로.</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="./assets/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">본문으로 이동</a>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="주 메뉴">
+      <a class="brand" href="#keymap" aria-label="Link65 Studio 홈">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5v14h6M13 5v14h6M5 12h14"/></svg></span>
+        <span class="brand-text">Link65 <strong>Studio</strong></span>
+      </a>
+      <div class="sidebar-caption">WORKSPACE</div>
+      <nav class="navigation" aria-label="설정 화면">
+        <button class="nav-item active" data-view="keymap" aria-label="키맵" aria-current="page"><svg><use href="./icons.svg#keyboard"/></svg><span>키맵</span></button>
+        <button class="nav-item" data-view="tester" aria-label="키 테스트"><svg><use href="./icons.svg#test"/></svg><span>키 테스트</span></button>
+        <button class="nav-item" data-view="macros" aria-label="매크로"><svg><use href="./icons.svg#macro"/></svg><span>매크로</span></button>
+        <button class="nav-item" data-view="settings" aria-label="백업 및 설정"><svg><use href="./icons.svg#settings"/></svg><span>백업 및 설정</span></button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="device-tile"><div class="device-tile-icon"><svg><use href="./icons.svg#keyboard"/></svg></div><div class="device-tile-copy"><strong>Owlab Link65</strong><small id="sidebar-status"><i class="status-dot"></i> 연결 대기 중</small></div></div>
+        <button class="theme-button" id="theme-button" title="화면 모드 전환"><svg><use href="./icons.svg#sun"/></svg><span>화면 모드</span><small id="theme-label">라이트</small></button>
+        <p class="sidebar-footnote">LINK65 HOTSWAP<br>WEB EDITION · 1.1</p>
+      </div>
+    </aside>
+
+    <main id="main" tabindex="-1">
+      <header class="page-header">
+        <div><p class="eyebrow">MAKE IT YOURS</p><h1 id="page-title">키맵</h1><p id="page-description">익숙한 배열에, 나만의 동작을 더하세요.</p></div>
+        <div class="header-actions"><span class="connection-pill" id="connection-pill"><i class="status-dot"></i><span>연결되지 않음</span></span><button class="button primary" id="connect-button"><svg><use href="./icons.svg#link"/></svg><span>키보드 연결</span></button><button class="button icon-button" id="disconnect-button" title="기기 연결 해제" aria-label="기기 연결 해제" hidden><svg><use href="./icons.svg#unlink"/></svg></button></div>
+      </header>
+      <div id="compatibility-banner" class="notice warning" hidden></div>
+      <div class="notice connection-notice" id="connection-notice"><span class="notice-icon"><svg><use href="./icons.svg#spark"/></svg></span><div><strong>키보드를 연결하면, 준비 끝.</strong><p>Link65 전용 정의가 내장되어 있어요. 지금은 기본 배열을 미리 볼 수 있습니다.</p></div><span class="subtle-badge">Edge · WebHID</span></div>
+      <div class="operation-status" id="operation-status" role="status" hidden><span class="spinner"></span><span></span></div>
+
+      <section class="view" id="view-keymap" aria-label="키맵 설정">
+        <div class="card keyboard-card">
+          <div class="card-toolbar"><div class="toolbar-title"><span class="tiny-dot"></span><strong>LINK65</strong><span class="subtle-badge" id="board-mode">기본 배열 미리보기</span></div><div class="layer-control"><span class="muted small">레이어</span><div class="segmented" id="layers" aria-label="레이어 선택"></div></div></div>
+          <div class="keyboard-scroll"><div class="keyboard-deck" id="keymap-deck"><div class="case-topline"><span>OWL LAB</span><span>LINK / 65</span></div><div class="keyboard-inner" id="keymap-board" aria-label="Link65 키 배열"></div><div class="case-bottomline"><span></span><span>DESIGNED TO BE YOURS</span><span>67 KEYS</span></div></div></div>
+          <div class="board-caption"><span><svg><use href="./icons.svg#pointer"/></svg>변경할 키를 선택하세요.</span><span>Layer <b id="current-layer">0</b><span class="caption-divider">/</span>67 keys</span></div>
+        </div>
+
+        <div class="card assignment-card">
+          <div class="selected-key-preview" id="selected-key-preview" aria-hidden="true">A</div>
+          <div class="selected-key-info"><p class="eyebrow">SELECTED KEY</p><h2 id="selected-key-title">키를 선택하세요</h2><p class="muted small" id="selected-key-detail">위 키보드에서 원하는 위치를 누르세요.</p></div>
+          <form id="keycode-form" class="keycode-form"><label for="keycode-input">키코드 직접 입력</label><div class="inline-input"><input id="keycode-input" placeholder="예: KC_ESC, MO(1)" spellcheck="false" autocomplete="off" maxlength="120" disabled><button class="button secondary" id="stage-key-button" disabled>변경</button></div></form>
+          <button class="button ghost" id="undo-key-button" disabled><svg><use href="./icons.svg#undo"/></svg>되돌리기</button>
+        </div>
+
+        <div class="card catalog-card">
+          <div class="catalog-toolbar"><h2>키 동작</h2><div class="filter-tabs" id="categories" aria-label="동작 분류"><button class="active" data-category="basic" aria-pressed="true">일반</button><button data-category="media" aria-pressed="false">수정·미디어</button><button data-category="layer" aria-pressed="false">레이어</button><button data-category="macro" aria-pressed="false">매크로</button></div><label class="search-field"><svg><use href="./icons.svg#search"/></svg><input id="key-search" placeholder="키 이름 검색" aria-label="키 동작 검색" autocomplete="off"></label></div>
+          <div class="key-catalog" id="key-catalog" aria-label="키 동작 목록"></div><p class="empty-state" id="catalog-empty" hidden>검색 결과가 없습니다.</p>
+        </div>
+      </section>
+
+      <section class="view" id="view-tester" aria-label="키 테스트" hidden>
+        <div class="card tester-card"><div class="card-toolbar"><div class="toolbar-title"><span class="live-dot" id="test-live-dot"></span><strong id="test-status">연결하면 테스트를 시작합니다.</strong></div><div class="test-actions"><label class="switch-label"><input type="checkbox" id="test-sound" checked><span class="switch-track"></span>입력 알림음</label><button class="button ghost" id="sound-preview" title="알림음 미리 듣기"><svg><use href="./icons.svg#sound"/></svg><span>소리 확인</span></button><button class="button secondary" id="test-pause" disabled>일시 정지</button></div></div>
+          <div class="test-stats"><div><span>검사한 키</span><strong><b id="test-seen">0</b><small> / 67</small></strong></div><div><span>지금 누르는 키</span><strong><b id="test-held">0</b><small>개</small></strong></div><div><span>누른 횟수</span><strong><b id="test-count">0</b><small>회</small></strong></div><button class="button ghost" id="test-clear"><svg><use href="./icons.svg#undo"/></svg>검사 기록 지우기</button></div>
+          <div class="keyboard-scroll"><div class="keyboard-deck tester-deck" id="tester-deck" tabindex="0" aria-label="물리 키 테스트 영역"><div class="case-topline"><span>PHYSICAL SWITCH TEST</span><span>LINK / 65</span></div><div class="keyboard-inner" id="tester-board"></div><div class="case-bottomline"><span></span><span>EVERY KEY MATTERS</span><span>67 KEYS</span></div></div></div>
+          <div class="test-legend"><span><i class="legend-dot held"></i>누르는 중</span><span><i class="legend-dot seen"></i>검사 완료</span><span><i class="legend-dot"></i>아직 검사하지 않음</span></div>
+          <div class="test-last" id="test-last">키보드의 키를 눌러 보세요.</div>
+        </div><p class="section-note"><svg><use href="./icons.svg#info"/></svg>기본 배열의 물리 위치를 검사합니다. Fn·동시 입력을 지원하며, 다른 탭이나 앱으로 이동하면 자동으로 멈춥니다.</p>
+      </section>
+
+      <section class="view" id="view-macros" aria-label="매크로 설정" hidden>
+        <div class="card macro-workspace"><div class="macro-sidebar"><h2>내 매크로</h2><p class="muted small" id="macro-total">16개의 작은 자동화</p><div id="macro-list" role="group" aria-label="매크로 선택"></div></div><div class="macro-editor"><div class="macro-heading"><div><p class="eyebrow">A LITTLE SHORTCUT</p><h2 id="macro-title">매크로 0</h2></div><span class="subtle-badge" id="macro-capacity">0 / 385 bytes</span></div><label for="macro-input">실행할 문자와 키 동작</label><textarea id="macro-input" spellcheck="false" placeholder="hello {KC_ENT}&#10;{KC_LCTL,KC_C}{500}{KC_LCTL,KC_V}" rows="10"></textarea><p id="macro-message" class="field-message" role="status"></p><div class="macro-examples"><span>빠르게 추가</span><button data-macro-insert="{KC_ENT}">Enter</button><button data-macro-insert="{KC_LCTL,KC_C}">복사</button><button data-macro-insert="{KC_LCTL,KC_V}">붙여넣기</button><button data-macro-insert="{500}">0.5초 대기</button></div><div class="macro-footer"><p>영문·숫자·기호를 입력할 수 있어요.<br>키맵에서 <code>MACRO(번호)</code>를 지정하면 실행됩니다.</p><button class="button primary" id="stage-macro">변경 준비</button></div></div></div>
+      </section>
+
+      <section class="view" id="view-settings" aria-label="백업 및 설정" hidden>
+        <div class="settings-grid"><div class="card settings-card"><span class="section-icon"><svg><use href="./icons.svg#archive"/></svg></span><h2>내 설정, 안전하게</h2><p>현재 편집본을 저장하고, 언제든 다시 불러오세요.<br>데스크톱 버전의 JSON 백업도 사용할 수 있습니다.</p><div class="button-row"><button class="button secondary" id="export-backup"><svg><use href="./icons.svg#download"/></svg>백업 다운로드</button><button class="button ghost" id="import-backup"><svg><use href="./icons.svg#upload"/></svg>백업 불러오기</button></div><input type="file" id="backup-file" accept=".json,application/json" hidden></div>
+        <div class="card settings-card"><span class="section-icon"><svg><use href="./icons.svg#keyboard"/></svg></span><h2>키보드 정보</h2><dl class="device-info" id="device-info"><div><dt>모델</dt><dd>Owlab Link65 Hotswap</dd></div><div><dt>연결</dt><dd>연결 대기 중</dd></div></dl><button class="button ghost" id="reload-button" disabled><svg><use href="./icons.svg#refresh"/></svg>기기에서 다시 읽기</button></div></div>
+        <div class="card history-card"><div class="card-toolbar"><div><h2>자동 백업</h2><p class="muted small">연결할 때와 설정을 바꾸기 전에 이 브라우저에 보관합니다.</p></div><span class="subtle-badge">최근 20개</span></div><div id="backup-history"></div><p class="empty-state" id="backup-empty">아직 자동 백업이 없습니다.</p></div>
+        <div class="card reset-card"><div><h2>기본값으로 돌아가기</h2><p>전체 레이어의 키맵, 매크로와 레이아웃 옵션을 기판의 기본값으로 되돌립니다.</p></div><button class="button danger-quiet" id="reset-button" disabled>기본값 초기화…</button></div>
+        <p class="section-note">Owlab·VIA·Apple의 공식 제품이 아닙니다. <a href="./THIRD_PARTY_NOTICES.txt" target="_blank" rel="noopener">오픈소스 및 폰트 라이선스</a></p>
+      </section>
+
+      <footer class="save-bar"><div class="save-status"><span id="change-dot"></span><div><strong id="change-count">변경한 설정이 없습니다.</strong><small id="save-detail">키보드를 연결하고 나만의 배열을 만들어 보세요.</small></div></div><div class="save-actions"><button class="button ghost" id="discard-button" disabled>변경 취소</button><button class="button primary" id="apply-button" disabled><svg><use href="./icons.svg#check"/></svg>키보드에 적용</button></div></footer>
+      <p class="page-footnote">LOCAL FIRST. YOUR KEYBOARD, YOUR SETTINGS.<span>Link65 Studio · Web 1.1</span></p>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" hidden></div>
+  <dialog id="reset-dialog" aria-labelledby="reset-title"><div class="dialog-icon"><svg><use href="./icons.svg#refresh"/></svg></div><h2 id="reset-title">처음의 배열로 돌아갈까요?</h2><p>현재 설정을 자동 백업한 뒤 초기화합니다.</p><ul><li>전체 레이어 → 기판에 내장된 기본 키맵</li><li>저장한 매크로 → 모두 비우기</li><li>레이아웃 옵션 → 기본값</li></ul><p class="muted small" id="reset-extra"></p><div class="dialog-actions"><button class="button secondary" id="reset-cancel" autofocus>취소</button><button class="button danger" id="reset-confirm">초기화 실행</button></div></dialog>
+  <noscript><p class="notice warning">이 도구를 사용하려면 JavaScript를 켜 주세요.</p></noscript>
+</body>
+</html>
